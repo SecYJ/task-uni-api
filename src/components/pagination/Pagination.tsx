@@ -1,59 +1,54 @@
-import useUniversity from "../../hooks/useUniversity";
-import { LIMIT_PER_PAGE } from "../../services/universityService";
-import { Queries } from "../../types/interface";
 import PaginationItem from "./PaginationItem";
 
-interface Props {
+interface Props<T> {
+	total: T[];
+	onChange: (page: number) => void;
 	currentPage: number;
-	temp: Queries;
-	setCurrentPage: (page: number) => void;
 }
 
-const Pagination = ({ currentPage, temp, setCurrentPage }: Props) => {
-	const { data } = useUniversity(temp);
-	const pages = data?.length ? Math.ceil(data.length / LIMIT_PER_PAGE) : 0;
-
+const Pagination = <T,>({ total, onChange, currentPage }: Props<T>) => {
 	return (
 		<nav aria-label="Page navigation example" className="my-10 text-center">
 			<ul className="inline-flex -space-x-px text-base h-10">
 				<PaginationItem
-					onClick={() => setCurrentPage(currentPage - 1 <= 0 ? 1 : currentPage - 1)}
+					onClick={() => onChange(currentPage - 1 <= 0 ? 1 : currentPage - 1)}
 					disabled={currentPage === 1}
 				>
 					Previous
 				</PaginationItem>
 
-				{/* NOTE: testing for current page less than 5 */}
 				{currentPage <= 4 && (
 					<>
-						{Array.from({ length: 5 }, (_, index) => {
+						{Array.from({ length: total.length >= 5 ? 5 : total.length }, (_, index) => {
 							return (
 								<PaginationItem
 									key={index}
 									isActive={currentPage === index + 1}
-									onClick={() => setCurrentPage(index + 1)}
+									onClick={() => onChange(index + 1)}
 								>
 									{index + 1}
 								</PaginationItem>
 							);
 						})}
-						<PaginationItem>...</PaginationItem>
-						<PaginationItem onClick={() => setCurrentPage(pages)}>{pages}</PaginationItem>
+						{total.length >= 5 && (
+							<>
+								<PaginationItem>...</PaginationItem>
+								<PaginationItem onClick={() => onChange(total.length)}>{total.length}</PaginationItem>
+							</>
+						)}
 					</>
 				)}
 
 				{/* NOTE: Pagination more than 5 */}
-				{currentPage >= 5 && currentPage < pages - 5 && (
-					<>
-						<PaginationItem
-							onClick={() => {
-								const pageNumber = Math.floor(currentPage / 5) <= 0 ? 1 : Math.floor(currentPage / 5);
+				{/* currentPage = 13, totalLength - 5 = 13 */}
+				{/* currentPage = 13, totalLength = 18 - 5 = 13 */}
+				{/* currentPage = 14, totalLength - 4 = 14 */}
+				{/* currentPage = 13, currentPage=13 < totalLength-5=13 */}
 
-								setCurrentPage(pageNumber);
-							}}
-						>
-							{Math.floor(currentPage / 5) <= 0 ? 1 : Math.floor(currentPage / 5)}
-						</PaginationItem>
+				{/* NOTE: might be correct, fix later */}
+				{/* {total.length - currentPage >= 5 && currentPage > 5 && (
+					<>
+						<PaginationItem onClick={() => onChange(1)}>1</PaginationItem>
 						<PaginationItem>...</PaginationItem>
 						{Array.from({ length: 3 }, (_, index) => {
 							const tempNumber = currentPage - 1;
@@ -61,7 +56,7 @@ const Pagination = ({ currentPage, temp, setCurrentPage }: Props) => {
 							return (
 								<PaginationItem
 									key={index}
-									onClick={() => setCurrentPage(tempNumber + index)}
+									onClick={() => onChange(tempNumber + index)}
 									isActive={currentPage === tempNumber + index}
 								>
 									{tempNumber + index}
@@ -69,43 +64,83 @@ const Pagination = ({ currentPage, temp, setCurrentPage }: Props) => {
 							);
 						})}
 						<PaginationItem>...</PaginationItem>
-						<PaginationItem onClick={() => setCurrentPage(pages)}>{pages}</PaginationItem>
+						<PaginationItem onClick={() => onChange(total.length)}>{total.length}</PaginationItem>
 					</>
-				)}
+				)} */}
 
-				{/* TODO: fix bug */}
-				{currentPage + 5 === pages && (
+				{/* NOTE: correct version */}
+				{currentPage >= 5 && currentPage <= total.length - 5 && (
 					<>
-						<PaginationItem>1 testing</PaginationItem>
+						<PaginationItem onClick={() => onChange(1)}>1</PaginationItem>
 						<PaginationItem>...</PaginationItem>
-						{Array(pages)
-							.fill(0)
-							// NOTE: BUG MAYBE HERE
-							.slice(pages - 5, pages)
-							.map((_, index) => {
-								const tempNumber = currentPage - 1;
-								console.log(tempNumber);
+						{Array.from({ length: 3 }, (_, index) => {
+							const tempNumber = currentPage - 1;
 
-								return (
-									<PaginationItem
-										key={index}
-										onClick={() => setCurrentPage(tempNumber + index)}
-										isActive={currentPage === index + 1}
-									>
-										{tempNumber + index}
-										{/* NOTE: testing */}
-									</PaginationItem>
-								);
-							})}
+							return (
+								<PaginationItem
+									key={index}
+									onClick={() => onChange(tempNumber + index)}
+									isActive={currentPage === tempNumber + index}
+								>
+									{tempNumber + index}
+								</PaginationItem>
+							);
+						})}
+						<PaginationItem>...</PaginationItem>
+						<PaginationItem onClick={() => onChange(total.length)}>{total.length}</PaginationItem>
 					</>
 				)}
 
-				{/* next page button */}
+				{/* currentPage = 15,  */}
+				{/* first condition */}
+				{/* currentPage = 13, total = 18 - 5 = 13, condition = false  */}
+				{/* currentPage = 14, total = 18 - 5 = 13, condition = true */}
+				{/* second condition */}
+				{/* currentPage = 13, total = 18, condition = true */}
+				{/* currentPage = 18, total = 18, condition = true */}
+				{/* total.length > 5 not sure */}
+				{/* currentPage <= 4 */}
+				{/* {total.length - currentPage <= 5 && (
+					<>
+						<PaginationItem onClick={() => onChange(1)}>1</PaginationItem>
+						<PaginationItem>...</PaginationItem>
+						{Array.from({ length: 5 }, (_, index) => {
+							return (
+								<PaginationItem
+									key={index}
+									onClick={() => onChange(total.length - index)}
+									isActive={currentPage === total.length - index}
+								>
+									{total.length - index}
+								</PaginationItem>
+							);
+						}).reverse()}
+					</>
+				)} */}
+				{/* NOTE: correct version */}
+				{currentPage > total.length - 5 && currentPage <= total.length && (
+					<>
+						<PaginationItem onClick={() => onChange(1)}>1</PaginationItem>
+						<PaginationItem>...</PaginationItem>
+						{Array.from({ length: 5 }, (_, index) => {
+							return (
+								<PaginationItem
+									key={index}
+									onClick={() => onChange(total.length - index)}
+									isActive={currentPage === total.length - index}
+								>
+									{total.length - index}
+								</PaginationItem>
+							);
+						}).reverse()}
+					</>
+				)}
+
 				<PaginationItem
 					onClick={() => {
-						setCurrentPage(currentPage + 1 >= pages ? currentPage : currentPage + 1);
+						onChange(currentPage + 1 > total.length ? currentPage : currentPage + 1);
 					}}
-					disabled={currentPage >= pages}
+					disabled={currentPage >= total.length}
 				>
 					Next
 				</PaginationItem>

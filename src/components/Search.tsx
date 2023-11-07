@@ -6,15 +6,17 @@ interface FormField {
 }
 
 interface Props {
-	temp: { name: string; country: string };
-	setTemp: (temp: { name: string; country: string }) => void;
+	search: { name: string; country: string };
+	onSearch: (temp: { name: string; country: string }) => void;
+	onPageChange: (page: number) => void;
 }
 
-const Search = ({ setTemp }: Props) => {
+const Search = ({ onSearch, onPageChange }: Props) => {
 	const { register, handleSubmit } = useForm<FormField>();
 
 	const onSubmit: SubmitHandler<FormField> = (data) => {
-		setTemp({ ...data });
+		onSearch({ ...data });
+		onPageChange(1);
 	};
 
 	return (

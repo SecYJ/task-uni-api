@@ -13,7 +13,17 @@ const TableRow = ({ university }: Props) => {
 				{name}
 			</th>
 			<td className="px-6 py-4">{alpha_two_code}</td>
-			<td className="px-6 py-4">Laptop</td>
+			<td className="px-6 py-4">
+				{web_pages.map((link) => (
+					<a
+						href={link}
+						key={link}
+						className="border-b border-transparent hover:border-white transition-colors"
+					>
+						{link}
+					</a>
+				))}
+			</td>
 			<td className="px-6 py-4">{country}</td>
 		</tr>
 	);

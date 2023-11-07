@@ -26,8 +26,8 @@ const Table = ({ universityList }: Props) => {
 					</tr>
 				</thead>
 				<tbody>
-					{universityList?.map((university) => (
-						<TableRow university={university} key={university.name} />
+					{universityList?.map((university, index) => (
+						<TableRow university={university} key={university.name + index} />
 					))}
 				</tbody>
 			</table>

@@ -1,35 +1,48 @@
-import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import useUniversity from "./hooks/useUniversity";
-import { getUniversityList } from "./services/universityService";
-import { Table, Modal, Search, Pagination } from "./components";
+import { Modal, Search, Table } from "./components";
+import Pagination from "./components/pagination/Pagination";
+import { LIMIT_PER_PAGE } from "./services/universityService";
 
 const App = () => {
-	const [temp, setTemp] = useState({ name: "", country: "turkey" });
+	const [search, setSearch] = useState({ name: "", country: "turkey" });
 	const [currentPage, setCurrentPage] = useState(1);
-	const { data, isLoading } = useUniversity(temp, currentPage);
-	const queryClient = useQueryClient();
+	const { data, isLoading } = useUniversity(search);
+	const pages = data?.length ? Math.ceil(data.length / LIMIT_PER_PAGE) : 0;
 
-	useEffect(() => {
-		const prefetchUniList = async () => {
-			// The results of this query will be cached like a normal query
-			await queryClient.prefetchQuery({
-				queryKey: ["university-list", temp.name, temp.country, currentPage + 1],
-				queryFn: () => getUniversityList(temp, currentPage + 1),
-			});
-		};
+	let universityData: unknown;
 
-		prefetchUniList();
-	}, [currentPage, queryClient, temp]);
+	if (data?.length) {
+		universityData = Array.from({ length: pages }, (_, index) => {
+			const startIndex = index * LIMIT_PER_PAGE;
+			const endIndex = LIMIT_PER_PAGE * (index + 1);
+			const pageData = data?.slice(startIndex, endIndex);
+			return pageData;
+		});
+	}
+
+	const universityList = Array.isArray(universityData) ? universityData[currentPage - 1] : [];
+	console.log(universityList);
+	const totalPage = Array.isArray(universityData) ? universityData : [];
 
 	return (
 		<div className="min-h-screen grid grid-rows-[auto_1fr_auto] container">
-			<Search setTemp={setTemp} temp={temp} />
+			<Search
+				onPageChange={(page) => setCurrentPage(page)}
+				onSearch={(searchData) => setSearch(searchData)}
+				search={search}
+			/>
 
-			{isLoading ? <div /> : <Table universityList={data ?? []} />}
+			{isLoading && <div />}
 
-			<Pagination temp={temp} setCurrentPage={setCurrentPage} currentPage={currentPage} />
-
+			{universityList.length > 0 ? (
+				<>
+					<Table universityList={universityList} />
+					<Pagination total={totalPage} currentPage={currentPage} onChange={(page) => setCurrentPage(page)} />
+				</>
+			) : (
+				<p>No data found!</p>
+			)}
 			{isLoading && <Modal />}
 		</div>
 	);
