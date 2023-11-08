@@ -22,7 +22,6 @@ const App = () => {
 	}
 
 	const universityList = Array.isArray(universityData) ? universityData[currentPage - 1] : [];
-	console.log(universityList);
 	const totalPage = Array.isArray(universityData) ? universityData : [];
 
 	return (
